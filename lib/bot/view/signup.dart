@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/supabaseservice.dart';
 import '../utilities/button.dart';
+import '../utilities/utils.dart';
 import 'login.dart';
 
 class Signup extends StatefulWidget {
@@ -12,20 +13,22 @@ class Signup extends StatefulWidget {
 }
 
 class _SignupState extends State<Signup> {
+  bool isSecure = true;
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final usernameController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    bool isSecure = true;
     final authService = AuthService();
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-    final usernameController = TextEditingController();
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(30.0),
+      appBar: null,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(30.0),
+          child: SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const CircleAvatar(
                   radius: 90,
@@ -35,7 +38,7 @@ class _SignupState extends State<Signup> {
                   height: 15,
                 ),
                 const Text(
-                  'Sign-up',
+                  'Sign up',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(
@@ -43,38 +46,38 @@ class _SignupState extends State<Signup> {
                 ),
                 TextField(
                   controller: usernameController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Enter Username',
                     labelText: 'Enter username',
-                    prefixIcon: Icon(
+                    prefixIcon: const Icon(
                       Icons.person,
                       color: Colors.green,
                     ),
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
-                const SizedBox(
-                  height: 20,
+                SizedBox(
+                  height: height,
                 ),
                 TextField(
                   controller: emailController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Enter Email',
                     labelText: 'Enter Email',
-                    prefixIcon: Icon(
+                    prefixIcon: const Icon(
                       Icons.person,
                       color: Colors.green,
                     ),
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
-                const SizedBox(
-                  height: 30,
+                SizedBox(
+                  height: height,
                 ),
                 TextField(
+                  obscureText: isSecure,
                   controller: passwordController,
                   decoration: InputDecoration(
                     hintText: 'Enter Password',
@@ -89,10 +92,11 @@ class _SignupState extends State<Signup> {
                             isSecure = !isSecure;
                           });
                         },
-                        icon: isSecure == true
-                            ? const Icon(Icons.visibility_off)
-                            : const Icon(Icons.visibility)),
-                    border: const OutlineInputBorder(),
+                        icon: Icon(isSecure
+                            ? Icons.visibility_off
+                            : Icons.visibility)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
                 const SizedBox(
@@ -103,15 +107,12 @@ class _SignupState extends State<Signup> {
                       if (usernameController.text.isNotEmpty &&
                           passwordController.text.isNotEmpty &&
                           emailController.text.isNotEmpty) {
-                        authService
-                            .signUpUser(usernameController.text,
-                                passwordController.text, emailController.text)
-                            .then((_) {
-                          return ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Account created successfully')));
-                        });
+                        authService.signUpUser(
+                            context,
+                            usernameController.text.toString(),
+                            passwordController.text.toString(),
+                            emailController.text.toString()
+                            );
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                             content: Text(

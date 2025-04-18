@@ -22,112 +22,141 @@ class ChatScreen extends StatelessWidget {
   Widget _buildChatList(BuildContext context) {
     return Consumer<Fetch>(builder: (context, items, child) {
       return Expanded(
-        child: items.messages.isEmpty
-            ? const Center(
-                child: Text(
-                  'Start Conversation',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-              )
-            : ListView.builder(
-                reverse: true,
-                itemCount: items.messages.length,
-                itemBuilder: (context, index) {
-                  final data =
-                      items.messages[items.messages.length - 1 - index];
-                  return Align(
-                    alignment: data.isUser
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Card.outlined(
-                        color:
-                            data.isUser ? Colors.pinkAccent : Colors.grey[500],
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.75,
-                          child: ListTile(
-                            leading: Icon(
-                              data.isUser ? Icons.person : Icons.smart_toy,
-                              color: data.isUser
-                                  ? Colors.greenAccent
-                                  : Colors.purple,
-                            ),
-                            title: SelectableText(
-                              data.text,
-                            ),
-                            subtitle: Align(
-                              alignment: Alignment.bottomRight,
-                              child: Text(
-                                '${data.dateTime.hour}: ${data.dateTime.minute}',
-                                style: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold),
+          child: items.messages.isEmpty
+              ? const Center(
+                  child: Text(
+                    'Start Conversation',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                )
+              : FutureBuilder(
+                  future: items.loadSupabaseSMessage(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text('${snapshot.error}', maxLines: null),
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                        reverse: true,
+                        itemCount: items.messages.length,
+                        itemBuilder: (context, index) {
+                          final data =
+                              items.messages[items.messages.length - 1 - index];
+                          return Align(
+                            alignment: data.isUser
+                                ? Alignment.centerRight
+                                : Alignment.centerLeft,
+                            child: Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: Card.outlined(
+                                color: data.isUser
+                                    ? Colors.pinkAccent
+                                    : Colors.grey[500],
+                                child: SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.75,
+                                  child: ListTile(
+                                    leading: Icon(
+                                      data.isUser
+                                          ? Icons.person
+                                          : Icons.smart_toy,
+                                      color: data.isUser
+                                          ? Colors.greenAccent
+                                          : Colors.purple,
+                                    ),
+                                    title: SelectableText(data.text),
+                                    subtitle: Align(
+                                      alignment: Alignment.bottomRight,
+                                      child: Text(
+                                        '${DateTime.parse(data.dateTime).hour + 3}: ${DateTime.parse(data.dateTime).minute}',
+                                        style: const TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    onLongPress: () {
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                                icon: IconButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                  icon: const Icon(
+                                                    Icons.close,
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                                title: const Text(
+                                                    'Delete Message'),
+                                                titlePadding:
+                                                    const EdgeInsets.all(10),
+                                                content: const Padding(
+                                                  padding: EdgeInsets.only(
+                                                      left: 50.0),
+                                                  child: Text('Are you sure ?'),
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.all(14),
+                                                actions: [
+                                                  TextButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      child:
+                                                          const Text("Cancel")),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Provider.of<Fetch>(
+                                                              context,
+                                                              listen: false)
+                                                          .deleteMessage(data);
+                                                      Navigator.pop(context);
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                              const SnackBar(
+                                                        content: Text(
+                                                            'Deletion Success'),
+                                                        elevation: 9,
+                                                        margin:
+                                                            EdgeInsets.all(9),
+                                                        padding:
+                                                            EdgeInsets.all(10),
+                                                        behavior:
+                                                            SnackBarBehavior
+                                                                .floating,
+                                                        showCloseIcon: true,
+                                                        closeIconColor:
+                                                            Colors.red,
+                                                      ));
+                                                    },
+                                                    child: const Text(
+                                                      "Delete",
+                                                      style: TextStyle(
+                                                          color: Colors.red,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                  )
+                                                ],
+                                              ));
+                                    },
+                                  ),
+                                ),
                               ),
                             ),
-                            onLongPress: () {
-                              showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                        icon: IconButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          icon: const Icon(
-                                            Icons.close,
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        title: const Text('Delete Message'),
-                                        titlePadding: const EdgeInsets.all(10),
-                                        content: const Padding(
-                                          padding: EdgeInsets.only(left: 50.0),
-                                          child: Text('Are you sure ?'),
-                                        ),
-                                        contentPadding:
-                                            const EdgeInsets.all(14),
-                                        actions: [
-                                          TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                              },
-                                              child: const Text("Cancel")),
-                                          TextButton(
-                                            onPressed: () {
-                                              Provider.of<Fetch>(context,
-                                                      listen: false)
-                                                  .deleteMessage(data);
-                                              Navigator.pop(context);
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(const SnackBar(
-                                                content:
-                                                    Text('Deletion Success'),
-                                                elevation: 9,
-                                                margin: EdgeInsets.all(9),
-                                                padding: EdgeInsets.all(10),
-                                                behavior:
-                                                    SnackBarBehavior.floating,
-                                                showCloseIcon: true,
-                                                closeIconColor: Colors.red,
-                                              ));
-                                            },
-                                            child: const Text(
-                                              "Delete",
-                                              style: TextStyle(
-                                                  color: Colors.red,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          )
-                                        ],
-                                      ));
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-      );
+                          );
+                        });
+                  }));
     });
   }
 
